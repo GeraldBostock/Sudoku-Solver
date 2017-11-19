@@ -5,6 +5,7 @@ using System.Data;
 using System.Drawing;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -15,6 +16,10 @@ namespace Sudoku
         int SUDOKU_SIZE;
         int THREAD_COUNT;
         int[,] sudoku;
+        ThreadContext[] ctxs;
+        int[,] isRed;
+        Helper helper;
+        private int winnerThreadID;
 
         public Form1(int[,] sudoku, int SUDOKU_SIZE, int THREAD_COUNT)
         {
@@ -23,6 +28,21 @@ namespace Sudoku
             this.SUDOKU_SIZE = SUDOKU_SIZE;
             this.sudoku = sudoku;
             this.THREAD_COUNT = THREAD_COUNT;
+            ctxs = new ThreadContext[THREAD_COUNT];
+            for(int i = 0; i < THREAD_COUNT; i++)
+            {
+                ctxs[i] = new ThreadContext();
+                ctxs[i].sudoku = this.sudoku;
+            }
+            label1.Visible = false;
+            label8.Visible = false;
+
+            helper = new Helper();
+
+            isRed = new int[9, 9];
+
+            isRed = helper.getColor(sudoku);
+            this.Text = "Sudoku Solver";
         }
 
         private void sudokuPaintEventHandler(object sender, PaintEventArgs e, int[,] sudoku)
@@ -73,61 +93,120 @@ namespace Sudoku
                 {
                     string numberString = sudoku[i, j].ToString();
                     if (numberString != "0")
+                    {
+                        if (isRed[i, j] == 1) drawBrush.Color = Color.Red;
+                        else drawBrush.Color = Color.Black;
                         e.Graphics.DrawString(numberString, drawFont, drawBrush, (panel.Width * (10 * (j + 1)) / 100), (panel.Height * (10 * (i + 1)) / 100), drawFormat);
+                    }
                 }
             }
         }
 
         private void startButton_Click(object sender, EventArgs e)
         {
-            ThreadContext ctx = new ThreadContext();
+            startButton.Visible = false;
+
             Threads threads = new Threads(sudoku, THREAD_COUNT);
-            ctx = threads.ctx;
+            ctxs = threads.getContexts();
+            //ctxs = helper.putInOrder(ctxs);
 
-            Console.WriteLine();
-
-            /*for (int i = 0; i < 9; i++)
+            for(int i = 0; i < THREAD_COUNT; i++)
             {
-                for (int j = 0; j < 9; j++)
+                if (ctxs[i].winner)
                 {
-                    Console.Write(ctx.sudoku[i, j] + " ");
-                }
-                Console.WriteLine();
-            }*/
+                    sudoku = ctxs[i].sudoku;
+                    label8.Text = "Winner is Thread #" + ctxs[i].threadID;
+                    label8.Font = new Font(label1.Font, FontStyle.Bold);
+                    label8.Visible = true;
 
-            //Console.Write(ctx.time);
+                    label1.Text = "Completion time: " + ctxs[i].time.ToString();
+                    label1.Font = new Font(label1.Font, FontStyle.Bold);
+                    label1.Visible = true;
+
+                    winnerThreadID = i;
+                }
+            }
 
             this.Refresh();
         }
 
         private void panel2_Paint(object sender, PaintEventArgs e)
         {
-            drawSudoku(e, sudoku, panel2);
+            drawSudoku(e, ctxs[0].sudoku, panel2);
         }
 
         private void panel3_Paint(object sender, PaintEventArgs e)
         {
-            drawSudoku(e, sudoku, panel3);
+            drawSudoku(e, ctxs[1].sudoku, panel3);
         }
 
         private void panel4_Paint(object sender, PaintEventArgs e)
         {
-            drawSudoku(e, sudoku, panel4);
+            drawSudoku(e, ctxs[2].sudoku, panel4);
         }
 
         private void panel5_Paint(object sender, PaintEventArgs e)
         {
-            drawSudoku(e, sudoku, panel5);
+            drawSudoku(e, ctxs[3].sudoku, panel5);
         }
 
         private void panel6_Paint(object sender, PaintEventArgs e)
         {
-            drawSudoku(e, sudoku, panel6);
+            drawSudoku(e, ctxs[4].sudoku, panel6);
         }
 
         private void panel7_Paint(object sender, PaintEventArgs e)
         {
-            drawSudoku(e, sudoku, panel7);
+            drawSudoku(e, ctxs[5].sudoku, panel7);
+        }
+
+        private void panel1_DoubleClick(object sender, EventArgs e)
+        {
+            StepsForm winnerForm = new StepsForm(ctxs[winnerThreadID].tableStack, isRed);
+            winnerForm.Text = "Thread #" + winnerThreadID;
+            winnerForm.Show();
+        }
+
+        private void panel2_MouseDoubleClick(object sender, MouseEventArgs e)
+        {
+            StepsForm frm2 = new StepsForm(ctxs[0].tableStack, isRed);
+            frm2.Text = "Thread #0";
+            frm2.Show();
+        }
+
+        private void panel3_MouseDoubleClick(object sender, MouseEventArgs e)
+        {
+            StepsForm frm2 = new StepsForm(ctxs[1].tableStack, isRed);
+            frm2.Text = "Thread #1";
+            frm2.Show();
+        }
+
+        private void panel4_MouseDoubleClick(object sender, MouseEventArgs e)
+        {
+            StepsForm frm2 = new StepsForm(ctxs[2].tableStack, isRed);
+            frm2.Text = "Thread #2";
+            frm2.Show();
+        }
+
+        private void panel5_MouseDoubleClick(object sender, MouseEventArgs e)
+        {
+            StepsForm frm2 = new StepsForm(ctxs[3].tableStack, isRed);
+            frm2.Text = "Thread #3";
+            frm2.Show();
+        }
+
+        private void panel6_MouseDoubleClick(object sender, MouseEventArgs e)
+        {
+            StepsForm frm2 = new StepsForm(ctxs[4].tableStack, isRed);
+            frm2.Text = "Thread #4";
+            frm2.Show();
+        }
+
+        private void panel7_MouseDoubleClick(object sender, MouseEventArgs e)
+        {
+            StepsForm frm2 = new StepsForm(ctxs[5].tableStack, isRed);
+            frm2.Text = "Thread #5";
+            frm2.Show();
         }
     }
 }

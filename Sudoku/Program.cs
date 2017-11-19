@@ -9,7 +9,7 @@ namespace Sudoku
 {
     static class Program
     {
-        private static readonly int THREAD_COUNT = 7;
+        private static readonly int THREAD_COUNT = 6;
         private static readonly String FILE_NAME = "sudoku.txt";
         private static int[,] sudoku = new int [9, 9];
         private static readonly int SUDOKU_SIZE = 9;
@@ -20,6 +20,7 @@ namespace Sudoku
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             readSudoku();
+            Helper.deleteThreadFiles();
             Application.Run(new Form1(sudoku, SUDOKU_SIZE, THREAD_COUNT));
         }
 
@@ -40,15 +41,6 @@ namespace Sudoku
                     else sudoku[j, i] = array[i] - 48;
                 }
                 j++;
-            }
-
-            for(int i = 0; i < SUDOKU_SIZE; i++)
-            {
-                for(j = 0; j < SUDOKU_SIZE; j++)
-                {
-                    Console.Write(sudoku[i, j] + " ");
-                }
-                Console.WriteLine();
             }
         }
     }
