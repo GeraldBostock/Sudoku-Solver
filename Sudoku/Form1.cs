@@ -43,6 +43,7 @@ namespace Sudoku
 
             isRed = helper.getColor(sudoku);
             this.Text = "Sudoku Solver";
+            this.FormBorderStyle = FormBorderStyle.FixedSingle;
         }
 
         private void sudokuPaintEventHandler(object sender, PaintEventArgs e, int[,] sudoku)

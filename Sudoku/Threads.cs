@@ -36,18 +36,12 @@ namespace Sudoku
                 objects[copy] = new Sudoku();
                 ctxs[i] = new ThreadContext(sudoku);
                 threads[i] = new Thread(() => { ctxs[copy] = objects[copy].solveSudoku((int[,])sudoku.Clone(), copy); });
-                //ctx.sudoku = this.sudoku;
-                //Thread thread = new Thread(() => { ctx = sudokuSolver.solveSudoku(sudoku); });
             }
 
             for(int i = 0; i < THREAD_COUNT; i++)
             {
                 threads[i].Start();
             }
-
-            /*ctx.sudoku = this.sudoku;
-            Thread thread = new Thread(() => { ctx = sudokuSolver.solveSudoku(sudoku); });
-            thread.Start();*/
         }
 
         public ThreadContext[] getContexts()

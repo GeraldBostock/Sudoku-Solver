@@ -12,7 +12,6 @@ namespace Sudoku
 {
     class Sudoku
     {
-        private String sudokuID;
         private int threadID;
         private String time;
         private Stopwatch sw = new Stopwatch();
@@ -43,12 +42,6 @@ namespace Sudoku
             set { time = value;  }
         }
 
-        internal String SudokuID
-        {
-            get { return sudokuID; }
-            set { sudokuID = value; }
-        }
-
         public ThreadContext solveSudoku(int[,] sudoku, int threadID)
         {
             tableStack = new ArrayList();
@@ -59,14 +52,14 @@ namespace Sudoku
             ctx = new ThreadContext(sudoku);
             this.threadID = threadID;
 
-            helper.writeToFile(sudoku, threadID);
             Stopwatch sw = new Stopwatch();
 
             sw.Start();
+            tableStack.Add(new SudokuStatus(sudoku, -1, -1));
+
             while (calculateLastDigit())
             {
                 populateCells();
-                helper.writeToFile(sudoku, threadID);
             }
 
             if (isDone())
@@ -76,8 +69,6 @@ namespace Sudoku
                 ctx.threadID = threadID;
                 return ctx;
             }
-
-            tableStack.Add(new SudokuStatus(sudoku, -1, -1));
 
             if (solve())
             {
@@ -115,7 +106,7 @@ namespace Sudoku
                             }
                         }
 
-                        if (candidates[i * 9 + j].Count == 1) return true; // sudoku[i, j] = candidates[i * 9 + j].First();
+                        if (candidates[i * 9 + j].Count == 1) return true;
                     }
                 }
             }
@@ -131,7 +122,11 @@ namespace Sudoku
                 {
                     if (sudoku[i, j] == 0)
                     {
-                        if (candidates[i * 9 + j].Count == 1) sudoku[i, j] = candidates[i * 9 + j].First();
+                        if (candidates[i * 9 + j].Count == 1)
+                        {
+                            sudoku[i, j] = candidates[i * 9 + j].First();
+                            addValue(candidates[i * 9 + j].First(), i, j);
+                        }
                     }
                 }
             }
@@ -180,8 +175,6 @@ namespace Sudoku
         {
             int[] nextBlankCoord = nextRandomCoord();
 
-            //helper.writeToFile(((SudokuStatus)tableStack[tableStack.Count - 1]).getTable(), threadID);
-
             for (int i = 1; i <= 9; i++)
             {
                 if (!isValidValue(i, nextBlankCoord[0], nextBlankCoord[1])) continue;
@@ -190,13 +183,11 @@ namespace Sudoku
 
                 if (isSolved() || !keepGoing)
                 {
-                    //ctx.tableStack = tableStack;
                     helper.writeToFile(tableStack, threadID);
                     return true;
                 }
                 if (solve() || !keepGoing)
                 {
-                    //helper.writeToFile(((SudokuStatus)tableStack[tableStack.Count - 1]).getTable(), threadID);
                     return true;
                 }
 
@@ -286,23 +277,6 @@ namespace Sudoku
 
         public int[] nextRandomCoord()
         {
-            /*int[] emptyCell = new int[2];
-
-            for (int i = 0; i < 9; i++)
-            {
-                for (int j = 0; j < 9; j++)
-                {
-                    if (sudoku[i, j] == 0)
-                    {
-                        emptyCell[0] = i;
-                        emptyCell[1] = j;
-                        return emptyCell;
-                    }
-                }
-            }
-
-            return emptyCell;*/
-
             int[] coord = new int[2];
 
             int[,] lastTable = getLastTable();
